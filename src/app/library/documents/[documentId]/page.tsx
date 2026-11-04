@@ -4,7 +4,7 @@ import { documentsService } from "@/services/documents.service";
 import { foldersService } from "@/services/folders.service";
 import { topicsService } from "@/services/topics.service";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { DocumentDetailClient } from "./DocumentDetailClient";
+import { DocumentWorkspaceClient } from "@/components/editor/DocumentWorkspaceClient";
 
 interface DocumentPageProps {
   params: Promise<{ documentId: string }>;
@@ -26,13 +26,12 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
     notFound();
   }
 
-  // Fetch breadcrumb ancestor path, topics, and allFolders in parallel
-  const [breadcrumbPath, topics, allFolders] = await Promise.all([
+  // Fetch breadcrumb ancestor path and topics in parallel
+  const [breadcrumbPath, topics] = await Promise.all([
     document.folderId
       ? foldersService.getFolderPath(document.folderId, userId)
       : Promise.resolve([]),
     topicsService.getTopicsByDocument(documentId, userId),
-    foldersService.getAllFolders(userId),
   ]);
 
   return (
@@ -44,38 +43,29 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
         avatarUrl: session.user.image,
       }}
     >
-      <DocumentDetailClient
+      <DocumentWorkspaceClient
         document={{
           id: document.id,
           title: document.title,
           description: document.description,
           folderId: document.folderId,
           sourceType: document.sourceType,
-          topicCount: document.topicCount ?? 0,
-          originalFileName: document.originalFileName,
-          fileSizeBytes: document.fileSizeBytes,
-          pageCount: document.pageCount,
-          createdAt: document.createdAt.toISOString(),
           updatedAt: document.updatedAt.toISOString(),
         }}
         breadcrumbPath={breadcrumbPath.map((node) => ({
           id: node.id,
           name: node.name,
         }))}
-        topics={topics.map((t) => ({
+        initialTopics={topics.map((t) => ({
           id: t.id,
           title: t.title,
-          plainText: t.plainText,
-          position: t.position,
-          origin: t.origin,
+          documentId: t.documentId,
           parentTopicId: t.parentTopicId,
+          position: t.position,
+          plainText: t.plainText,
+          content: (t.content as Record<string, unknown>) || undefined,
           createdAt: t.createdAt.toISOString(),
           updatedAt: t.updatedAt.toISOString(),
-        }))}
-        allFolders={allFolders.map((f) => ({
-          id: f.id,
-          name: f.name,
-          parentFolderId: f.parentFolderId,
         }))}
       />
     </AppLayout>

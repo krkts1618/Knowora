@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "katex/dist/katex.min.css";
 
 @theme {
   --color-canvas: var(--canvas);
@@ -134,3 +135,366 @@ textarea:focus,
 select:focus {
   border-color: var(--focus-ring) !important;
 }
+
+/* ==================================================
+   TIPTAP RICH TEXT EDITOR STYLES
+   ================================================== */
+
+.tiptap {
+  outline: none;
+  min-height: 400px;
+  font-size: 0.9375rem; /* 15px */
+  line-height: 1.75;
+  color: var(--text-primary);
+}
+
+.tiptap p {
+  margin-bottom: 1rem;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--text-muted);
+  pointer-events: none;
+  height: 0;
+  font-style: italic;
+}
+
+.tiptap h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+.tiptap h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin-top: 1.5rem;
+  margin-bottom: 0.6rem;
+  line-height: 1.35;
+  color: var(--text-primary);
+}
+
+.tiptap h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+.tiptap strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tiptap em {
+  font-style: italic;
+}
+
+.tiptap u {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tiptap s {
+  text-decoration: line-through;
+}
+
+.tiptap :not(pre) > code {
+  background-color: var(--surface-muted);
+  color: var(--accent);
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.825em;
+  padding: 0.2em 0.4em;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+  font-weight: 500;
+}
+
+.tiptap blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.tiptap hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2rem 0;
+}
+
+.tiptap a.editor-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.tiptap a.editor-link:hover {
+  opacity: 0.8;
+}
+
+/* Lists */
+.tiptap ul:not([data-type="taskList"]) {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tiptap ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tiptap li {
+  margin-bottom: 0.25rem;
+}
+
+.tiptap li > p {
+  margin-bottom: 0.25rem;
+}
+
+/* Task Lists */
+.tiptap ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tiptap li[data-type="taskItem"] {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin-bottom: 0.375rem;
+}
+
+.tiptap li[data-type="taskItem"] > label {
+  user-select: none;
+  margin-top: 0.25rem;
+}
+
+.tiptap li[data-type="taskItem"] > label input[type="checkbox"] {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: 0.25rem;
+  background-color: var(--surface);
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+  transition: all 0.12s ease;
+}
+
+.tiptap li[data-type="taskItem"] > label input[type="checkbox"]:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.tiptap li[data-type="taskItem"] > label input[type="checkbox"]:checked::before {
+  content: "";
+  width: 0.55rem;
+  height: 0.55rem;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  transform: scale(1);
+  background-color: var(--accent-foreground);
+}
+
+.tiptap li[data-type="taskItem"] > div {
+  flex: 1 1 auto;
+}
+
+.tiptap li[data-type="taskItem"][data-checked="true"] > div > p {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Tables */
+.tiptap table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 1.25rem 0;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+}
+
+.tiptap th,
+.tiptap td {
+  min-width: 1em;
+  border: 1px solid var(--border);
+  padding: 0.625rem 0.75rem;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+  font-size: 0.875rem;
+}
+
+.tiptap th {
+  font-weight: 600;
+  text-align: left;
+  background-color: var(--surface-muted);
+  color: var(--text-primary);
+}
+
+.tiptap .selectedCell:after {
+  z-index: 2;
+  position: absolute;
+  content: "";
+  left: 0; right: 0; top: 0; bottom: 0;
+  background: var(--selection);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.tiptap .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  background-color: var(--accent);
+  pointer-events: none;
+}
+
+/* Math Nodes */
+.inline-math-node {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.375rem;
+  background-color: var(--surface-muted);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+  vertical-align: baseline;
+  line-height: normal;
+}
+
+.inline-math-node:hover {
+  border-color: var(--accent);
+}
+
+.block-math-node {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.25rem;
+  margin: 1.25rem 0;
+  border-radius: 0.875rem;
+  background-color: var(--surface-muted);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  overflow-x: auto;
+  transition: border-color 0.12s ease;
+}
+
+.block-math-node:hover {
+  border-color: var(--accent);
+}
+
+/* Syntax Highlighting for Code Blocks (hljs) matching NoteNest's natural theme */
+.hljs-comment,
+.hljs-quote {
+  color: #69756b;
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+  color: #1f6b4d;
+  font-weight: 600;
+}
+
+.dark .hljs-keyword,
+.dark .hljs-selector-tag,
+.dark .hljs-subst {
+  color: #72c49a;
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag .hljs-attr {
+  color: #b8621b;
+}
+
+.dark .hljs-number,
+.dark .hljs-literal,
+.dark .hljs-variable,
+.dark .hljs-template-variable,
+.dark .hljs-tag .hljs-attr {
+  color: #f0c36a;
+}
+
+.hljs-string,
+.hljs-doctag {
+  color: #3b7a57;
+}
+
+.dark .hljs-string,
+.dark .hljs-doctag {
+  color: #92d9b3;
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-selector-id {
+  color: #2b5d44;
+  font-weight: 600;
+}
+
+.dark .hljs-title,
+.dark .hljs-section,
+.dark .hljs-selector-id {
+  color: #a4e2c0;
+}
+
+.hljs-type,
+.hljs-class .hljs-title {
+  color: #8c531b;
+}
+
+.dark .hljs-type,
+.dark .hljs-class .hljs-title {
+  color: #e0b06b;
+}
+
+.hljs-attribute {
+  color: #4b6b55;
+}
+
+.hljs-bullet,
+.hljs-link {
+  color: #1f6b4d;
+}
+
+.hljs-built_in,
+.hljs-builtin-name {
+  color: #2e6b52;
+}
+
+.dark .hljs-built_in,
+.dark .hljs-builtin-name {
+  color: #84cfab;
+}
+

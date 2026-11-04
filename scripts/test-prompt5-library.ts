@@ -131,7 +131,7 @@ async function runPrompt5Tests() {
 
     // 8. Search & Sort Verification
     console.log("\n--- Testing Document Search & Sorting ---");
-    const searchDocs = await documentsService.getDocuments(testUserId, { search: "Virtual" });
+    const searchDocs = await documentsService.getDocuments(testUserId, { search: "Virtual", page: 1, pageSize: 20 });
     assert(searchDocs.items.some((d) => d.id === doc1.id), "Document search by keyword 'Virtual' found document");
 
     // 9. Document Deletion Strategy
