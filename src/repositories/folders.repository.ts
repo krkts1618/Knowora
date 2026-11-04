@@ -1,11 +1,25 @@
 import { db } from "@/lib/db";
 import { folders } from "@/lib/db/schema";
-import { and, eq, isNull, asc, count } from "drizzle-orm";
+import {
+  and,
+  eq,
+  isNull,
+  asc,
+  desc,
+  count,
+  sql,
+  getTableColumns,
+  ilike,
+} from "drizzle-orm";
 
 export class FoldersRepository {
   async findById(id: string, userId: string) {
     const res = await db
-      .select()
+      .select({
+        ...getTableColumns(folders),
+        documentCount: sql<number>`(SELECT count(*)::int FROM documents WHERE documents.folder_id = folders.id)`,
+        subfolderCount: sql<number>`(SELECT count(*)::int FROM folders AS sub WHERE sub.parent_folder_id = folders.id)`,
+      })
       .from(folders)
       .where(and(eq(folders.id, id), eq(folders.userId, userId)))
       .limit(1);
@@ -13,7 +27,14 @@ export class FoldersRepository {
     return res[0] || null;
   }
 
-  async listByUser(userId: string, parentFolderId?: string | null) {
+  async listByUser(
+    userId: string,
+    parentFolderId?: string | null,
+    options?: {
+      search?: string;
+      sortBy?: "name-asc" | "name-desc" | "updated-desc" | "created-desc";
+    }
+  ) {
     const conditions = [eq(folders.userId, userId)];
 
     if (parentFolderId !== undefined) {
@@ -24,11 +45,58 @@ export class FoldersRepository {
       }
     }
 
+    if (options?.search && options.search.trim()) {
+      conditions.push(ilike(folders.name, `%${options.search.trim()}%`));
+    }
+
+    let orderByClause = asc(folders.name);
+    if (options?.sortBy === "name-desc") {
+      orderByClause = desc(folders.name);
+    } else if (options?.sortBy === "updated-desc") {
+      orderByClause = desc(folders.updatedAt);
+    } else if (options?.sortBy === "created-desc") {
+      orderByClause = desc(folders.createdAt);
+    }
+
+    return await db
+      .select({
+        ...getTableColumns(folders),
+        documentCount: sql<number>`(SELECT count(*)::int FROM documents WHERE documents.folder_id = folders.id)`,
+        subfolderCount: sql<number>`(SELECT count(*)::int FROM folders AS sub WHERE sub.parent_folder_id = folders.id)`,
+      })
+      .from(folders)
+      .where(and(...conditions))
+      .orderBy(orderByClause);
+  }
+
+  async listAllByUser(userId: string) {
     return await db
       .select()
       .from(folders)
-      .where(and(...conditions))
-      .orderBy(asc(folders.position), asc(folders.name));
+      .where(eq(folders.userId, userId))
+      .orderBy(asc(folders.name));
+  }
+
+  async getFolderPath(
+    folderId: string,
+    userId: string
+  ): Promise<Array<{ id: string; name: string; parentFolderId: string | null }>> {
+    const res = await db.execute(sql`
+      WITH RECURSIVE folder_path AS (
+        SELECT id, name, parent_folder_id, 1 as depth
+        FROM folders
+        WHERE id = ${folderId} AND user_id = ${userId}
+        
+        UNION ALL
+        
+        SELECT f.id, f.name, f.parent_folder_id, fp.depth + 1
+        FROM folders f
+        JOIN folder_path fp ON f.id = fp.parent_folder_id
+        WHERE f.user_id = ${userId}
+      )
+      SELECT id, name, parent_folder_id as "parentFolderId" FROM folder_path ORDER BY depth DESC;
+    `);
+    return res.rows as Array<{ id: string; name: string; parentFolderId: string | null }>;
   }
 
   async countByUser(userId: string) {

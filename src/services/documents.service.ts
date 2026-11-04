@@ -16,6 +16,9 @@ export class DocumentsService {
       folderId?: string | null;
       page: number;
       pageSize: number;
+      search?: string;
+      sourceType?: "manual" | "pdf";
+      sortBy?: "name-asc" | "name-desc" | "updated-desc" | "created-desc";
     }
   ) {
     const limit = options.pageSize;
@@ -26,8 +29,15 @@ export class DocumentsService {
         folderId: options.folderId,
         limit,
         offset,
+        search: options.search,
+        sourceType: options.sourceType,
+        sortBy: options.sortBy,
       }),
-      documentsRepository.countByUser(userId, options.folderId),
+      documentsRepository.countByUser(userId, {
+        folderId: options.folderId,
+        search: options.search,
+        sourceType: options.sourceType,
+      }),
     ]);
 
     return createPaginatedResult(items, total, options.page, options.pageSize);

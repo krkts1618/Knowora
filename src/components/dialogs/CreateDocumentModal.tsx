@@ -5,20 +5,27 @@ import { FileText, X, Loader2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export interface CreateDocumentModalProps {
+  initialFolderId?: string | null;
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
 }
 
-export function CreateDocumentModal({
-  isOpen,
+interface CreateDocumentModalContentProps {
+  initialFolderId?: string | null;
+  onClose: () => void;
+  onSuccess?: () => void;
+}
+
+function CreateDocumentModalContent({
+  initialFolderId,
   onClose,
   onSuccess,
-}: CreateDocumentModalProps) {
+}: CreateDocumentModalContentProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [folderId, setFolderId] = useState<string>("");
+  const [folderId, setFolderId] = useState<string>(initialFolderId || "");
   const [foldersList, setFoldersList] = useState<Array<{ id: string; name: string }>>([]);
   const [isLoadingFolders, setIsLoadingFolders] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,8 +40,6 @@ export function CreateDocumentModal({
   }, [onClose]);
 
   useEffect(() => {
-    if (!isOpen) return;
-
     let isMounted = true;
 
     fetch("/api/folders")
@@ -52,18 +57,15 @@ export function CreateDocumentModal({
     return () => {
       isMounted = false;
     };
-  }, [isOpen]);
+  }, []);
 
   useEffect(() => {
-    if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") handleClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, handleClose]);
-
-  if (!isOpen) return null;
+  }, [handleClose]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -210,5 +212,23 @@ export function CreateDocumentModal({
         </form>
       </div>
     </div>
+  );
+}
+
+export function CreateDocumentModal({
+  initialFolderId,
+  isOpen,
+  onClose,
+  onSuccess,
+}: CreateDocumentModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <CreateDocumentModalContent
+      key={initialFolderId || "root"}
+      initialFolderId={initialFolderId}
+      onClose={onClose}
+      onSuccess={onSuccess}
+    />
   );
 }

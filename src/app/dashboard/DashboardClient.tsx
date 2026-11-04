@@ -220,7 +220,7 @@ export function DashboardClient({
               {recentDocs.map((doc) => (
                 <Link
                   key={doc.id}
-                  href={`/library?doc=${doc.id}`}
+                  href={`/library/documents/${doc.id}`}
                   className="p-3 rounded-xl border border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--accent)] hover:bg-[var(--surface-hover)] transition-all flex items-start justify-between gap-3 group"
                 >
                   <div className="flex items-start gap-2.5 min-w-0">
@@ -279,7 +279,7 @@ export function DashboardClient({
               {recentViews.map((view) => (
                 <Link
                   key={view.id}
-                  href={`/library?topic=${view.topicId}`}
+                  href={`/library/documents/${view.documentId}`}
                   className="p-3 rounded-xl border border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--accent)] hover:bg-[var(--surface-hover)] transition-all flex items-start justify-between gap-3 group"
                 >
                   <div className="flex items-start gap-2.5 min-w-0">
@@ -336,7 +336,7 @@ export function DashboardClient({
               {bookmarksList.slice(0, 5).map((bm) => (
                 <Link
                   key={bm.id}
-                  href={`/library?topic=${bm.topicId}`}
+                  href={`/library/documents/${bm.documentId}`}
                   className="p-3 rounded-xl border border-[var(--border)] bg-[var(--canvas)] hover:border-[var(--accent)] hover:bg-[var(--surface-hover)] transition-all flex items-start justify-between gap-3 group"
                 >
                   <div className="flex items-start gap-2.5 min-w-0">

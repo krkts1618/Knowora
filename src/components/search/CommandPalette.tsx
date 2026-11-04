@@ -113,7 +113,7 @@ export function CommandPalette() {
                 type: "document",
                 title: doc.title,
                 subtitle: doc.description || "Document",
-                url: `/library?doc=${doc.id}`,
+                url: `/library/documents/${doc.id}`,
               });
             }
           }
@@ -126,7 +126,7 @@ export function CommandPalette() {
                 type: "topic",
                 title: top.title,
                 subtitle: top.plainText?.slice(0, 70) || "Study topic",
-                url: `/library?topic=${top.id}`,
+                url: `/library/documents/${top.documentId}`,
               });
             }
           }
@@ -139,7 +139,7 @@ export function CommandPalette() {
                 type: "folder",
                 title: fol.name,
                 subtitle: "Folder collection",
-                url: `/library?folder=${fol.id}`,
+                url: `/library/folders/${fol.id}`,
               });
             }
           }

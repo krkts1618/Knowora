@@ -5,19 +5,28 @@ import { Folder, X, Loader2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export interface CreateFolderModalProps {
+  initialParentFolderId?: string | null;
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
 }
 
-export function CreateFolderModal({
-  isOpen,
+interface CreateFolderModalContentProps {
+  initialParentFolderId?: string | null;
+  onClose: () => void;
+  onSuccess?: () => void;
+}
+
+function CreateFolderModalContent({
+  initialParentFolderId,
   onClose,
   onSuccess,
-}: CreateFolderModalProps) {
+}: CreateFolderModalContentProps) {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [parentFolderId, setParentFolderId] = useState<string>("");
+  const [parentFolderId, setParentFolderId] = useState<string>(
+    initialParentFolderId || ""
+  );
   const [foldersList, setFoldersList] = useState<Array<{ id: string; name: string }>>([]);
   const [isLoadingFolders, setIsLoadingFolders] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,10 +39,7 @@ export function CreateFolderModal({
     onClose();
   }, [onClose]);
 
-  // Fetch folders for parent folder dropdown when modal opens
   useEffect(() => {
-    if (!isOpen) return;
-
     let isMounted = true;
 
     fetch("/api/folders")
@@ -53,19 +59,15 @@ export function CreateFolderModal({
     return () => {
       isMounted = false;
     };
-  }, [isOpen]);
+  }, []);
 
-  // Keyboard close
   useEffect(() => {
-    if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") handleClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, handleClose]);
-
-  if (!isOpen) return null;
+  }, [handleClose]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,5 +202,23 @@ export function CreateFolderModal({
         </form>
       </div>
     </div>
+  );
+}
+
+export function CreateFolderModal({
+  initialParentFolderId,
+  isOpen,
+  onClose,
+  onSuccess,
+}: CreateFolderModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <CreateFolderModalContent
+      key={initialParentFolderId || "root"}
+      initialParentFolderId={initialParentFolderId}
+      onClose={onClose}
+      onSuccess={onSuccess}
+    />
   );
 }

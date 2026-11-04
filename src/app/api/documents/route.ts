@@ -5,8 +5,6 @@ import { createDocumentSchema } from "@/lib/validation/documents";
 import { parsePaginationParams } from "@/lib/utils/pagination";
 import { apiSuccess, handleApiError } from "@/lib/errors/api-response";
 
-
-
 export async function GET(req: NextRequest) {
   try {
     const session = await requireAuth();
@@ -18,10 +16,21 @@ export async function GET(req: NextRequest) {
         ? null
         : folderIdParam || undefined;
 
+    const search = searchParams.get("search") || undefined;
+    const sourceType = (searchParams.get("sourceType") as "manual" | "pdf") || undefined;
+    const sortBy = (searchParams.get("sortBy") as
+      | "name-asc"
+      | "name-desc"
+      | "updated-desc"
+      | "created-desc") || undefined;
+
     const result = await documentsService.getDocuments(session.user.id, {
       folderId,
       page: pagination.page,
       pageSize: pagination.pageSize,
+      search,
+      sourceType,
+      sortBy,
     });
 
     return apiSuccess(result);

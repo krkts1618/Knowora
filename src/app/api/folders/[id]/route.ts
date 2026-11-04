@@ -4,7 +4,6 @@ import { foldersService } from "@/services/folders.service";
 import { updateFolderSchema } from "@/lib/validation/folders";
 import { apiSuccess, handleApiError } from "@/lib/errors/api-response";
 
-
 interface RouteContext {
   params: Promise<{ id: string }>;
 }
@@ -13,7 +12,15 @@ export async function GET(req: NextRequest, context: RouteContext) {
   try {
     const session = await requireAuth();
     const { id } = await context.params;
+    const { searchParams } = new URL(req.url);
+
     const folder = await foldersService.getFolderById(id, session.user.id);
+
+    if (searchParams.get("path") === "true") {
+      const path = await foldersService.getFolderPath(id, session.user.id);
+      return apiSuccess({ ...folder, path });
+    }
+
     return apiSuccess(folder);
   } catch (err) {
     return handleApiError(err);

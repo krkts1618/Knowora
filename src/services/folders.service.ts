@@ -4,11 +4,34 @@ import {
   UpdateFolderInput,
   createFolderSchema,
 } from "@/lib/validation/folders";
-import { NotFoundError, ValidationError, ConflictError } from "@/lib/errors/app-error";
+import {
+  NotFoundError,
+  ValidationError,
+  ConflictError,
+} from "@/lib/errors/app-error";
 
 export class FoldersService {
-  async getFolders(userId: string, parentFolderId?: string | null) {
-    return await foldersRepository.listByUser(userId, parentFolderId);
+  async getFolders(
+    userId: string,
+    parentFolderId?: string | null,
+    options?: {
+      search?: string;
+      sortBy?: "name-asc" | "name-desc" | "updated-desc" | "created-desc";
+    }
+  ) {
+    return await foldersRepository.listByUser(userId, parentFolderId, options);
+  }
+
+  async getAllFolders(userId: string) {
+    return await foldersRepository.listAllByUser(userId);
+  }
+
+  async getFolderPath(folderId: string, userId: string) {
+    const existing = await foldersRepository.findById(folderId, userId);
+    if (!existing) {
+      throw new NotFoundError("Folder not found");
+    }
+    return await foldersRepository.getFolderPath(folderId, userId);
   }
 
   async getFolderById(id: string, userId: string) {

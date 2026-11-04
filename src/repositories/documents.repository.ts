@@ -1,11 +1,25 @@
 import { db } from "@/lib/db";
 import { documents, storageObjects, storageDeletionJobs } from "@/lib/db/schema";
-import { and, eq, isNull, desc, count } from "drizzle-orm";
+import {
+  and,
+  eq,
+  isNull,
+  desc,
+  asc,
+  count,
+  sql,
+  getTableColumns,
+  ilike,
+  or,
+} from "drizzle-orm";
 
 export class DocumentsRepository {
   async findById(id: string, userId: string) {
     const res = await db
-      .select()
+      .select({
+        ...getTableColumns(documents),
+        topicCount: sql<number>`(SELECT count(*)::int FROM topics WHERE topics.document_id = documents.id)`,
+      })
       .from(documents)
       .where(and(eq(documents.id, id), eq(documents.userId, userId)))
       .limit(1);
@@ -19,6 +33,9 @@ export class DocumentsRepository {
       folderId?: string | null;
       limit: number;
       offset: number;
+      search?: string;
+      sourceType?: "manual" | "pdf";
+      sortBy?: "name-asc" | "name-desc" | "updated-desc" | "created-desc";
     }
   ) {
     const conditions = [eq(documents.userId, userId)];
@@ -31,23 +48,79 @@ export class DocumentsRepository {
       }
     }
 
+    if (options.sourceType) {
+      conditions.push(eq(documents.sourceType, options.sourceType));
+    }
+
+    if (options.search && options.search.trim()) {
+      const pattern = `%${options.search.trim()}%`;
+      conditions.push(
+        or(
+          ilike(documents.title, pattern),
+          ilike(documents.description, pattern)
+        )!
+      );
+    }
+
+    let orderByClause = desc(documents.createdAt);
+    if (options.sortBy === "name-asc") {
+      orderByClause = asc(documents.title);
+    } else if (options.sortBy === "name-desc") {
+      orderByClause = desc(documents.title);
+    } else if (options.sortBy === "updated-desc") {
+      orderByClause = desc(documents.updatedAt);
+    }
+
     return await db
-      .select()
+      .select({
+        ...getTableColumns(documents),
+        topicCount: sql<number>`(SELECT count(*)::int FROM topics WHERE topics.document_id = documents.id)`,
+      })
       .from(documents)
       .where(and(...conditions))
-      .orderBy(desc(documents.createdAt))
+      .orderBy(orderByClause)
       .limit(options.limit)
       .offset(options.offset);
   }
 
-  async countByUser(userId: string, folderId?: string | null) {
+  async countByUser(
+    userId: string,
+    options?:
+      | {
+          folderId?: string | null;
+          search?: string;
+          sourceType?: "manual" | "pdf";
+        }
+      | string
+      | null
+  ) {
     const conditions = [eq(documents.userId, userId)];
 
-    if (folderId !== undefined) {
-      if (folderId === null) {
+    if (typeof options === "string" || options === null) {
+      if (options === null) {
         conditions.push(isNull(documents.folderId));
-      } else {
-        conditions.push(eq(documents.folderId, folderId));
+      } else if (options) {
+        conditions.push(eq(documents.folderId, options));
+      }
+    } else if (options) {
+      if (options.folderId !== undefined) {
+        if (options.folderId === null) {
+          conditions.push(isNull(documents.folderId));
+        } else {
+          conditions.push(eq(documents.folderId, options.folderId));
+        }
+      }
+      if (options.sourceType) {
+        conditions.push(eq(documents.sourceType, options.sourceType));
+      }
+      if (options.search && options.search.trim()) {
+        const pattern = `%${options.search.trim()}%`;
+        conditions.push(
+          or(
+            ilike(documents.title, pattern),
+            ilike(documents.description, pattern)
+          )!
+        );
       }
     }
 
@@ -84,7 +157,7 @@ export class DocumentsRepository {
         fileSizeBytes: data.fileSizeBytes ?? 0,
         mimeType: data.mimeType,
         pageCount: data.pageCount ?? 0,
-        processingStatus: data.sourceType === "pdf" ? "completed" : "completed",
+        processingStatus: "completed",
       })
       .returning();
 
@@ -98,8 +171,6 @@ export class DocumentsRepository {
       title?: string;
       description?: string | null;
       folderId?: string | null;
-      pageCount?: number;
-      processingStatus?: string;
     }
   ) {
     const updated = await db
@@ -108,10 +179,6 @@ export class DocumentsRepository {
         ...(data.title !== undefined ? { title: data.title } : {}),
         ...(data.description !== undefined ? { description: data.description } : {}),
         ...(data.folderId !== undefined ? { folderId: data.folderId } : {}),
-        ...(data.pageCount !== undefined ? { pageCount: data.pageCount } : {}),
-        ...(data.processingStatus !== undefined
-          ? { processingStatus: data.processingStatus }
-          : {}),
         updatedAt: new Date(),
       })
       .where(and(eq(documents.id, id), eq(documents.userId, userId)))
@@ -120,40 +187,22 @@ export class DocumentsRepository {
     return updated[0] || null;
   }
 
+  // Deletion Option 1: Complete Deletion (Cascades through topics, bookmarks, recent-views, and marks storage objects)
   async deleteComplete(id: string, userId: string) {
-    const deleted = await db
-      .delete(documents)
-      .where(and(eq(documents.id, id), eq(documents.userId, userId)))
-      .returning();
-
-    return deleted[0] || null;
-  }
-
-  async deletePdfOnly(id: string, userId: string) {
     return await db.transaction(async (tx) => {
-      const doc = await tx
+      // 1. Fetch document to check if original file key exists
+      const docRes = await tx
         .select()
         .from(documents)
         .where(and(eq(documents.id, id), eq(documents.userId, userId)))
         .limit(1);
 
-      if (!doc[0]) return null;
+      const doc = docRes[0];
+      if (!doc) return null;
 
-      const fileKey = doc[0].originalFileKey;
+      const fileKey = doc.originalFileKey;
 
-      const updated = await tx
-        .update(documents)
-        .set({
-          originalFileKey: null,
-          originalFileName: null,
-          fileSizeBytes: 0,
-          mimeType: null,
-          updatedAt: new Date(),
-        })
-        .where(and(eq(documents.id, id), eq(documents.userId, userId)))
-        .returning();
-
-      // If there was an associated storage object, schedule deletion
+      // 2. If PDF original key exists, register a deletion job for Cloudflare R2
       if (fileKey) {
         const storages = await tx
           .select()
@@ -170,7 +219,59 @@ export class DocumentsRepository {
         }
       }
 
-      return updated[0];
+      // 3. Delete document (foreign key cascades will clean up topics, topicVersions, bookmarks, recentViews)
+      const deleted = await tx
+        .delete(documents)
+        .where(and(eq(documents.id, id), eq(documents.userId, userId)))
+        .returning();
+
+      return deleted[0] || null;
+    });
+  }
+
+  // Deletion Option 2: PDF-Only Deletion (Retains document entity & extracted topics, resets storage metadata)
+  async deletePdfOnly(id: string, userId: string) {
+    return await db.transaction(async (tx) => {
+      const docRes = await tx
+        .select()
+        .from(documents)
+        .where(and(eq(documents.id, id), eq(documents.userId, userId)))
+        .limit(1);
+
+      const doc = docRes[0];
+      if (!doc) return null;
+
+      const fileKey = doc.originalFileKey;
+
+      if (fileKey) {
+        const storages = await tx
+          .select()
+          .from(storageObjects)
+          .where(and(eq(storageObjects.userId, userId), eq(storageObjects.objectKey, fileKey)))
+          .limit(1);
+
+        if (storages[0]) {
+          await tx.insert(storageDeletionJobs).values({
+            userId,
+            storageObjectId: storages[0].id,
+            status: "pending",
+          });
+        }
+      }
+
+      const updated = await tx
+        .update(documents)
+        .set({
+          originalFileKey: null,
+          originalFileName: null,
+          fileSizeBytes: 0,
+          mimeType: null,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(documents.id, id), eq(documents.userId, userId)))
+        .returning();
+
+      return updated[0] || null;
     });
   }
 }
