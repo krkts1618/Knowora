@@ -9,7 +9,6 @@ import {
   Settings,
   BookOpen,
   LogOut,
-  ChevronDown,
   Sparkles,
 } from "lucide-react";
 
@@ -76,17 +75,11 @@ export function UserMenu({ user, className = "" }: UserMenuProps) {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 p-1 pl-1.5 pr-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent)] hover:bg-[var(--surface-hover)] transition-all text-xs focus:outline-none"
+        className="w-8 h-8 rounded-full bg-[var(--accent)]/15 border-2 border-[var(--accent)]/40 text-[var(--accent)] hover:border-[var(--accent)] hover:scale-105 flex items-center justify-center font-bold text-xs shrink-0 transition-all cursor-pointer shadow-xs focus:outline-none"
         aria-expanded={isOpen}
         aria-label="User account menu"
       >
-        <div className="w-6 h-6 rounded-lg bg-[var(--accent)] text-[var(--accent-foreground)] font-semibold text-[11px] flex items-center justify-center shrink-0">
-          {initials}
-        </div>
-        <span className="hidden md:inline-block font-medium truncate max-w-[100px]">
-          {displayName}
-        </span>
-        <ChevronDown className="w-3.5 h-3.5 text-[var(--text-muted)] opacity-70" />
+        {initials}
       </button>
 
       {isOpen && (

@@ -100,13 +100,13 @@ export function ProfileClient({ user, initialProfile }: ProfileClientProps) {
       </div>
 
       {/* Main card */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6 md:p-8 shadow-[var(--shadow-card)] flex flex-col gap-6">
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-6 md:p-8 shadow-[var(--shadow-card)] flex flex-col gap-6">
         <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
-          <div className="w-14 h-14 rounded-full bg-[var(--surface-muted)] text-[var(--accent)] border border-[var(--border)] flex items-center justify-center font-semibold text-lg">
-            {fullName ? fullName.slice(0, 2).toUpperCase() : <User className="w-6 h-6" />}
+          <div className="w-16 h-16 rounded-full bg-[var(--accent)]/15 border-2 border-[var(--accent)]/40 text-[var(--accent)] flex items-center justify-center font-bold text-lg shrink-0">
+            {fullName ? fullName.slice(0, 2).toUpperCase() : <User className="w-7 h-7" />}
           </div>
           <div className="flex flex-col">
-            <h1 className="text-xl font-semibold text-[var(--text-primary)]">
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">
               {fullName || "User Profile"}
             </h1>
             <p className="text-xs text-[var(--text-muted)] font-mono">{user.email}</p>
@@ -117,7 +117,7 @@ export function ProfileClient({ user, initialProfile }: ProfileClientProps) {
         <FormError message={error} />
 
         {/* Read-only account info */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-[var(--surface-muted)] text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-[var(--surface-muted)] text-xs">
           <div className="flex flex-col gap-1">
             <span className="text-[var(--text-muted)]">Account Email</span>
             <span className="font-medium text-[var(--text-primary)]">{user.email}</span>

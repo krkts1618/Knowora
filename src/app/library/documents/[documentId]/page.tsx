@@ -42,6 +42,7 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
         email: session.user.email,
         avatarUrl: session.user.image,
       }}
+      fullBleed={true}
     >
       <DocumentWorkspaceClient
         document={{

@@ -15,6 +15,10 @@ import {
   AlertCircle,
   Save,
   Calendar,
+  PanelRight,
+  Split,
+  Download,
+  X,
 } from "lucide-react";
 
 import { TopicTree, TopicItemData } from "./TopicTree";
@@ -298,6 +302,20 @@ export function DocumentWorkspaceClient({
   const [topicToMove, setTopicToMove] = useState<TopicItemData | null>(null);
   const [topicToDelete, setTopicToDelete] = useState<TopicItemData | null>(null);
   const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+
+  const handleExportTopic = () => {
+    if (!activeTopic) return;
+    const blob = new Blob([activeTopic.plainText || activeTopic.title], {
+      type: "text/markdown;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = window.document.createElement("a");
+    link.href = url;
+    link.download = `${activeTopic.title.replace(/\s+/g, "_")}.md`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   // Topic selection & routing
   const handleSelectTopic = (topicId: string) => {
@@ -418,14 +436,49 @@ export function DocumentWorkspaceClient({
           )}
         </nav>
 
-        {/* Back Link to Document Overview */}
-        <Link
-          href={doc.folderId ? `/library/folders/${doc.folderId}` : "/library"}
-          className="inline-flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shrink-0"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Exit Workspace</span>
-        </Link>
+        {/* Right Action Controls (Export, PDF Reader, Reference Panel Toggle) */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href={`/library/documents/${doc.id}/reader`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors cursor-pointer"
+            title="Open Document in PDF Reader"
+          >
+            <Split className="w-3.5 h-3.5 text-[var(--accent)]" />
+            <span className="hidden sm:inline">PDF Reader</span>
+          </Link>
+
+          <button
+            type="button"
+            onClick={handleExportTopic}
+            disabled={!activeTopic}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-[var(--accent)] text-[var(--accent-foreground)] hover:opacity-95 transition-all shadow-xs cursor-pointer disabled:opacity-40"
+            title="Export Topic Markdown"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
+            className={`p-1.5 rounded-xl border border-[var(--border)] transition-colors cursor-pointer ${
+              isRightPanelOpen
+                ? "bg-[var(--accent)]/15 text-[var(--accent)] border-[var(--accent)]/30"
+                : "bg-[var(--surface)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            }`}
+            title={isRightPanelOpen ? "Hide Source Reference" : "Show Source Reference"}
+          >
+            <PanelRight className="w-4 h-4" />
+          </button>
+
+          <Link
+            href={doc.folderId ? `/library/folders/${doc.folderId}` : "/library"}
+            className="inline-flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shrink-0 ml-1"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Exit</span>
+          </Link>
+        </div>
       </div>
 
       {/* Main Split-Screen Workspace */}
@@ -447,7 +500,7 @@ export function DocumentWorkspaceClient({
           />
         </div>
 
-        {/* RIGHT PANEL: Topic Editor & Workspace */}
+        {/* CENTER PANEL: Topic Editor & Workspace */}
         <div className="flex-1 flex flex-col h-full bg-[var(--canvas)] overflow-hidden">
           {activeTopic ? (
             <ActiveTopicEditorPane
@@ -491,6 +544,82 @@ export function DocumentWorkspaceClient({
             </div>
           )}
         </div>
+
+        {/* RIGHT PANEL: Source Reference & Related Topics (Matches Screen 3) */}
+        {isRightPanelOpen && activeTopic && (
+          <div className="hidden lg:flex w-72 xl:w-80 shrink-0 border-l border-[var(--border)] bg-[var(--sidebar)] p-4 flex flex-col gap-5 overflow-y-auto select-none">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[var(--border)] pb-2.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                Source Reference
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsRightPanelOpen(false)}
+                className="p-1 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Source Reference Card */}
+            <div className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-[var(--shadow-card)] flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--accent)] bg-[var(--accent)]/15 px-2.5 py-0.5 rounded-full border border-[var(--accent)]/30">
+                  Page 12
+                </span>
+                <span className="text-[10px] text-[var(--text-muted)] font-mono truncate max-w-[140px]">
+                  {doc.title}.pdf
+                </span>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[var(--surface-muted)]/70 border border-[var(--border)] text-xs text-[var(--text-secondary)] leading-relaxed italic">
+                &ldquo;Spring Boot simplifies development by offering opinionated defaults and embedded servlet containers.&rdquo;
+              </div>
+
+              <Link
+                href={`/library/documents/${doc.id}/reader`}
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-[var(--surface-muted)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] text-[var(--text-primary)] border border-[var(--border)] transition-colors"
+              >
+                <span>View in PDF</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            {/* Related Topics Section */}
+            <div className="flex flex-col gap-3 pt-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                  Related Topics
+                </span>
+                <span className="text-[10px] font-mono text-[var(--text-muted)]">
+                  {topics.length} items
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                {topics.slice(0, 6).map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => handleSelectTopic(t.id)}
+                    className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between text-xs cursor-pointer group ${
+                      t.id === activeTopicId
+                        ? "bg-[var(--accent)]/15 text-[var(--accent)] border-[var(--accent)]/40 font-semibold"
+                        : "bg-[var(--surface)] text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--accent)] hover:bg-[var(--surface-hover)]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shrink-0" />
+                      <span className="truncate">{t.title}</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-[var(--text-muted)] group-hover:text-[var(--accent)] shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modals */}

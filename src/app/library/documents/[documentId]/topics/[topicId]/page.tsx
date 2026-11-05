@@ -51,6 +51,7 @@ export default async function TopicPage({ params }: TopicPageProps) {
         email: session.user.email,
         avatarUrl: session.user.image,
       }}
+      fullBleed={true}
     >
       <DocumentWorkspaceClient
         document={{

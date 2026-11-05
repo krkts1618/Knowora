@@ -150,59 +150,55 @@ export function DocumentCard({
   }
 
   // Grid view
+  const formattedDate = new Date(doc.updatedAt).toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+  });
+
   return (
-    <div className="p-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)] hover:border-[var(--accent)] transition-all flex flex-col justify-between gap-3 group relative">
+    <div className="p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)] hover:border-[var(--accent)] hover:shadow-md transition-all flex flex-col justify-between gap-4 group relative">
       <div className="flex items-start justify-between gap-2">
         <Link
           href={`/library/documents/${doc.id}`}
-          className="w-10 h-10 rounded-xl bg-[var(--surface-muted)] text-[var(--accent)] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+          className="shrink-0"
         >
-          <FileText className="w-5 h-5" />
+          {isPdf ? (
+            <div className="w-12 h-12 rounded-2xl bg-[#E5484D]/15 text-[#E5484D] flex flex-col items-center justify-center font-bold text-[10px] shrink-0 group-hover:scale-105 transition-transform">
+              <FileText className="w-5 h-5 mb-0.5" />
+              <span className="text-[8px] font-mono leading-none tracking-widest font-black uppercase">PDF</span>
+            </div>
+          ) : (
+            <div className="w-12 h-12 rounded-2xl bg-[var(--surface-muted)] text-[var(--accent)] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <FileText className="w-6 h-6" />
+            </div>
+          )}
         </Link>
 
-        <div className="flex items-center gap-1.5">
-          <span
-            className={`text-[9px] font-mono px-1.5 py-0.5 rounded border uppercase tracking-wide ${
-              isPdf
-                ? "bg-[var(--surface-muted)] border-[var(--border)] text-[var(--accent)] font-medium"
-                : "bg-[var(--surface-muted)] border-[var(--border)] text-[var(--text-secondary)]"
-            }`}
-          >
-            {doc.sourceType}
-          </span>
-
-          <DropdownMenu
-            align="right"
-            trigger={
-              <button
-                type="button"
-                className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors"
-                title="Document options"
-              >
-                <MoreVertical className="w-3.5 h-3.5" />
-              </button>
-            }
-            items={menuItems}
-          />
-        </div>
+        <DropdownMenu
+          align="right"
+          trigger={
+            <button
+              type="button"
+              className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors cursor-pointer"
+              title="Document options"
+            >
+              <MoreVertical className="w-3.5 h-3.5" />
+            </button>
+          }
+          items={menuItems}
+        />
       </div>
 
       <Link href={`/library/documents/${doc.id}`} className="flex flex-col gap-1 min-w-0">
-        <h4 className="font-semibold text-xs text-[var(--text-primary)] truncate group-hover:text-[var(--accent)] transition-colors">
+        <h4 className="font-semibold text-sm text-[var(--text-primary)] truncate group-hover:text-[var(--accent)] transition-colors">
           {doc.title}
         </h4>
-        <p className="text-[11px] text-[var(--text-muted)] line-clamp-2 leading-relaxed min-h-[32px]">
-          {doc.description || "Manual document with study topics and notes."}
-        </p>
+        <span className="text-xs text-[var(--text-muted)]">
+          {isPdf
+            ? `PDF Document • ${formattedDate}`
+            : `${topicCount} ${topicCount === 1 ? "topic" : "topics"} • ${formattedDate}`}
+        </span>
       </Link>
-
-      <div className="pt-2 border-t border-[var(--border)]/70 flex items-center justify-between text-[10px] text-[var(--text-muted)]">
-        <div className="flex items-center gap-1 text-[var(--text-secondary)] font-medium">
-          <BookOpen className="w-3 h-3 text-[var(--accent)]" />
-          <span>{topicCount} {topicCount === 1 ? "topic" : "topics"}</span>
-        </div>
-        <span className="font-mono">{new Date(doc.updatedAt).toLocaleDateString()}</span>
-      </div>
     </div>
   );
 }

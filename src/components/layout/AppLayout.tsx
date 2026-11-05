@@ -17,9 +17,10 @@ export interface AppLayoutProps {
     avatarUrl?: string | null;
   } | null;
   breadcrumbs?: React.ReactNode;
+  fullBleed?: boolean;
 }
 
-export function AppLayout({ children, user, breadcrumbs }: AppLayoutProps) {
+export function AppLayout({ children, user, breadcrumbs, fullBleed = false }: AppLayoutProps) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [isCreateDocumentOpen, setIsCreateDocumentOpen] = useState(false);
@@ -61,9 +62,15 @@ export function AppLayout({ children, user, breadcrumbs }: AppLayoutProps) {
         />
 
         {/* Dynamic Page Content Viewport */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 select-text">
-          <div className="max-w-6xl mx-auto w-full">{children}</div>
-        </main>
+        {fullBleed ? (
+          <main className="flex-1 overflow-hidden select-text flex flex-col min-h-0">
+            {children}
+          </main>
+        ) : (
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 select-text">
+            <div className="max-w-6xl mx-auto w-full">{children}</div>
+          </main>
+        )}
       </div>
 
       {/* Command Palette Modal */}

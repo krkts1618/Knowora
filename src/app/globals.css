@@ -20,73 +20,73 @@
 }
 
 :root {
-  /* LIGHT THEME (Forest Focus) */
-  --canvas: #F4F7F3;
-  --sidebar: #F0F4EE;
+  /* LIGHT THEME (Forest Focus & Warm Ivory) */
+  --canvas: #FAF8F4;
+  --sidebar: #F3EFE6;
   --surface: #FFFFFF;
-  --surface-muted: #EAF0E8;
-  --surface-secondary: #EAF0E8;
-  --surface-hover: #E5EDE4;
-  --text-primary: #202923;
-  --text-secondary: #526054;
-  --text-muted: #69756B;
-  --text-tertiary: #69756B;
-  --border: #DCE5DA;
-  --border-subtle: #E2EAE0;
+  --surface-muted: #EFE8DC;
+  --surface-secondary: #EFE8DC;
+  --surface-hover: #E7DFD1;
+  --text-primary: #17221A;
+  --text-secondary: #48594C;
+  --text-muted: #6B7C6F;
+  --text-tertiary: #6B7C6F;
+  --border: #DFD6C3;
+  --border-subtle: #EBE4D5;
   --accent: #1F6B4D;
-  --accent-hover: #18563D;
+  --accent-hover: #18553D;
   --accent-foreground: #FFFFFF;
-  --selection: #DFEEE2;
-  --accent-subtle: #DFEEE2;
-  --focus-ring: #287D59;
+  --selection: #DFEFE3;
+  --accent-subtle: rgba(31, 107, 77, 0.08);
+  --focus-ring: #1F6B4D;
 
   /* Status Colors */
-  --status-success: #217346;
-  --status-warning: #946200;
+  --status-success: #1F6B4D;
+  --status-warning: #996500;
   --status-error: #B42318;
-  --status-info: #20626B;
+  --status-info: #1E6068;
   --status-disabled: #9AA49B;
 
-  --scrollbar-thumb: #CBD6C9;
-  --scrollbar-thumb-hover: #AAB9A7;
-  --shadow-subtle: 0 1px 2px rgba(32, 41, 35, 0.04);
-  --shadow-card: 0 1px 3px rgba(32, 41, 35, 0.05), 0 1px 2px rgba(32, 41, 35, 0.02);
-  --shadow-modal: 0 12px 32px -6px rgba(32, 41, 35, 0.12), 0 4px 12px rgba(32, 41, 35, 0.06);
+  --scrollbar-thumb: #CBD4C7;
+  --scrollbar-thumb-hover: #A8B5A4;
+  --shadow-subtle: 0 1px 2px rgba(23, 34, 26, 0.04);
+  --shadow-card: 0 1px 3px rgba(23, 34, 26, 0.05), 0 1px 2px rgba(23, 34, 26, 0.02);
+  --shadow-modal: 0 16px 36px -6px rgba(23, 34, 26, 0.12), 0 6px 16px rgba(23, 34, 26, 0.06);
 }
 
 .dark {
-  /* OLED DARK THEME (Forest Focus) */
-  --canvas: #000000;
-  --sidebar: #080C09;
-  --surface: #111713;
-  --surface-muted: #19231C;
-  --surface-secondary: #19231C;
-  --surface-hover: #202D24;
-  --text-primary: #E8F0E9;
-  --text-secondary: #B0BDB2;
-  --text-muted: #8B9B8E;
-  --text-tertiary: #8B9B8E;
-  --border: #29352C;
-  --border-subtle: #1C261F;
+  /* DEEP FOREST CHARCOAL DARK THEME */
+  --canvas: #0C130E;
+  --sidebar: #090E0B;
+  --surface: #121A14;
+  --surface-muted: #17221B;
+  --surface-secondary: #17221B;
+  --surface-hover: #1D2B22;
+  --text-primary: #EFF4F0;
+  --text-secondary: #A7B8AB;
+  --text-muted: #738577;
+  --text-tertiary: #738577;
+  --border: #213025;
+  --border-subtle: #19251D;
   --accent: #72C49A;
-  --accent-hover: #8AD4AA;
-  --accent-foreground: #102219;
-  --selection: #193B29;
-  --accent-subtle: #193B29;
-  --focus-ring: #8AD4AA;
+  --accent-hover: #86D3AB;
+  --accent-foreground: #08110B;
+  --selection: #1B3D2A;
+  --accent-subtle: rgba(114, 196, 154, 0.12);
+  --focus-ring: #72C49A;
 
   /* Status Colors */
   --status-success: #72C49A;
-  --status-warning: #F0C36A;
-  --status-error: #FF8A80;
-  --status-info: #6EC2CE;
-  --status-disabled: #667268;
+  --status-warning: #E5B450;
+  --status-error: #E55C52;
+  --status-info: #5FAFB8;
+  --status-disabled: #596B5D;
 
-  --scrollbar-thumb: #233026;
-  --scrollbar-thumb-hover: #334437;
-  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-modal: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 4px 16px rgba(0, 0, 0, 0.6);
+  --scrollbar-thumb: #1E2D23;
+  --scrollbar-thumb-hover: #2B3E31;
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-modal: 0 24px 48px -10px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 body {
@@ -497,4 +497,47 @@ select:focus {
 .dark .hljs-builtin-name {
   color: #84cfab;
 }
+
+/* ==================================================
+   CALLOUTS & BOTANICAL SIGNATURE ELEMENTS
+   ================================================== */
+
+.callout-card {
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  margin: 1.25rem 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.callout-tip {
+  background-color: rgba(114, 196, 154, 0.08);
+  border: 1px solid rgba(114, 196, 154, 0.25);
+  color: var(--text-primary);
+}
+
+.dark .callout-tip {
+  background-color: rgba(114, 196, 154, 0.07);
+  border: 1px solid rgba(114, 196, 154, 0.2);
+}
+
+.callout-warning {
+  background-color: rgba(229, 180, 80, 0.08);
+  border: 1px solid rgba(229, 180, 80, 0.25);
+  color: var(--text-primary);
+}
+
+.dark .callout-warning {
+  background-color: rgba(229, 180, 80, 0.08);
+  border: 1px solid rgba(229, 180, 80, 0.2);
+}
+
+/* Botanical subtle foliage overlay */
+.bg-botanical-glow {
+  background-radial: radial-gradient(circle at top right, rgba(114, 196, 154, 0.06), transparent 50%);
+}
+
 

@@ -235,7 +235,7 @@ export function LibraryView({
           </p>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons (Matches Screen 2) */}
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <button
             type="button"
@@ -243,7 +243,7 @@ export function LibraryView({
               setParentForNewSubfolder(currentFolder?.id || null);
               setIsCreateFolderOpen(true);
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors cursor-pointer"
           >
             <FolderPlus className="w-3.5 h-3.5 text-[var(--accent)]" />
             <span>{currentFolder ? "New Subfolder" : "New Folder"}</span>
@@ -251,11 +251,20 @@ export function LibraryView({
 
           <button
             type="button"
-            onClick={() => setIsCreateDocumentOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-xl bg-[var(--accent)] text-[var(--accent-foreground)] hover:bg-[var(--accent-hover)] transition-colors shadow-xs"
+            onClick={() => window.dispatchEvent(new CustomEvent("open-upload-pdf"))}
+            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 stroke-[2.2]" />
-            <span>New Document</span>
+            <Plus className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+            <span>Upload PDF</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsCreateDocumentOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-full bg-[var(--accent)] text-[var(--accent-foreground)] hover:opacity-95 active:scale-[0.99] transition-all shadow-sm cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>New</span>
           </button>
         </div>
       </div>
@@ -269,7 +278,7 @@ export function LibraryView({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filter folders and documents..."
+            placeholder="Search in Library..."
             className="w-full pl-8 pr-8 py-1.5 text-xs rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] transition-colors"
           />
           {searchQuery && (
@@ -463,6 +472,20 @@ export function LibraryView({
                     onDelete={setDocToDelete}
                   />
                 ))}
+
+                {viewMode === "grid" && (
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateDocumentOpen(true)}
+                    className="p-5 rounded-2xl border-2 border-dashed border-[var(--border)] hover:border-[var(--accent)] hover:bg-[var(--surface-muted)]/40 transition-all flex flex-col items-center justify-center gap-2 text-center text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer min-h-[140px] group"
+                    title="Create new document"
+                  >
+                    <div className="w-10 h-10 rounded-2xl bg-[var(--surface-muted)] group-hover:bg-[var(--accent)] group-hover:text-[var(--accent-foreground)] transition-colors flex items-center justify-center">
+                      <Plus className="w-5 h-5" />
+                    </div>
+                    <span className="font-semibold text-xs">Create Document</span>
+                  </button>
+                )}
               </div>
             </div>
           )}

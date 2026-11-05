@@ -1,33 +1,45 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth/auth-client";
 import {
-  BookMarked,
-  LayoutDashboard,
-  Library,
+  Home,
+  BookOpen,
   Clock,
   Bookmark,
+  Tag,
   Search,
-  Settings,
-  LogOut,
+  Plus,
   ChevronLeft,
   ChevronRight,
+  Folder,
   X,
-  Sun,
-  Moon,
+  FileText,
+  Upload,
+  Settings,
+  LogOut,
+  ChevronDown,
 } from "lucide-react";
-import { useTheme } from "@/context/theme-context";
+import { NoteNestLogo } from "@/components/ui/NoteNestLogo";
+import { DropdownMenu } from "@/components/ui/DropdownMenu";
 
 export interface AppSidebarProps {
   user?: {
+    id?: string;
     name?: string | null;
     email?: string | null;
+    avatarUrl?: string | null;
   } | null;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
+}
+
+interface CollectionFolder {
+  id: string;
+  name: string;
+  documentCount?: number;
 }
 
 export function AppSidebar({
@@ -36,8 +48,10 @@ export function AppSidebar({
   onCloseMobile,
 }: AppSidebarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab");
   const router = useRouter();
-  const { theme, resolvedTheme, setTheme } = useTheme();
+
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -46,7 +60,34 @@ export function AppSidebar({
       return false;
     }
   });
-  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const [collections, setCollections] = useState<CollectionFolder[]>([]);
+  const [isNewMenuOpen, setIsNewMenuOpen] = useState(false);
+
+  // Fetch top-level collections (folders)
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCollections = async () => {
+      try {
+        const res = await fetch("/api/folders");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data) && isMounted) {
+          setCollections(json.data.slice(0, 8));
+        }
+      } catch {
+        // Fallback or offline
+      }
+    };
+
+    fetchCollections();
+
+    const handleRefresh = () => fetchCollections();
+    window.addEventListener("refresh-folders", handleRefresh);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("refresh-folders", handleRefresh);
+    };
+  }, []);
 
   const toggleCollapsed = () => {
     const next = !isCollapsed;
@@ -58,14 +99,11 @@ export function AppSidebar({
 
   const handleSignOut = async () => {
     try {
-      setIsSigningOut(true);
       await authClient.signOut();
       router.push("/login");
       router.refresh();
     } catch {
       router.push("/login");
-    } finally {
-      setIsSigningOut(false);
     }
   };
 
@@ -74,29 +112,68 @@ export function AppSidebar({
     if (onCloseMobile) onCloseMobile();
   };
 
+  const openCreateDocument = () => {
+    window.dispatchEvent(new CustomEvent("open-create-document"));
+    setIsNewMenuOpen(false);
+    if (onCloseMobile) onCloseMobile();
+  };
+
+  const openCreateFolder = () => {
+    window.dispatchEvent(new CustomEvent("open-create-folder"));
+    setIsNewMenuOpen(false);
+    if (onCloseMobile) onCloseMobile();
+  };
+
+  const openUploadPdf = () => {
+    window.dispatchEvent(new CustomEvent("open-upload-pdf"));
+    setIsNewMenuOpen(false);
+    if (onCloseMobile) onCloseMobile();
+  };
+
+  // Compute initials
+  const userName = user?.name || "Scholar";
+  const userInitials = userName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .substring(0, 2)
+    .toUpperCase() || "NN";
+
   const navItems = [
     {
-      label: "Dashboard",
+      label: "Home",
       href: "/dashboard",
-      icon: LayoutDashboard,
-      active: pathname === "/dashboard",
+      icon: Home,
+      active: pathname === "/dashboard" && !currentTab,
     },
     {
       label: "My Library",
       href: "/library",
-      icon: Library,
+      icon: BookOpen,
       active: pathname === "/library" || pathname.startsWith("/library/"),
     },
     {
       label: "Recent",
       href: "/dashboard?tab=recent",
       icon: Clock,
-      active: false,
+      active: pathname === "/dashboard" && currentTab === "recent",
     },
     {
       label: "Bookmarks",
       href: "/dashboard?tab=bookmarks",
       icon: Bookmark,
+      active: pathname === "/dashboard" && currentTab === "bookmarks",
+    },
+    {
+      label: "Tags",
+      href: "/dashboard?tab=tags",
+      icon: Tag,
+      active: pathname === "/dashboard" && currentTab === "tags",
+    },
+    {
+      label: "Search",
+      onClick: openSearch,
+      icon: Search,
       active: false,
     },
   ];
@@ -104,36 +181,18 @@ export function AppSidebar({
   const sidebarContent = (
     <div
       className={`flex flex-col h-full bg-[var(--sidebar)] border-r border-[var(--border)] text-[var(--text-secondary)] select-none text-xs transition-all duration-200 ${
-        isCollapsed ? "w-16" : "w-60"
+        isCollapsed ? "w-16" : "w-64"
       }`}
     >
       {/* Brand Header */}
-      <div className="h-14 px-3.5 flex items-center justify-between border-b border-[var(--border)] shrink-0">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-2.5 group overflow-hidden"
-          title="NoteNest Dashboard"
-        >
-          <div className="w-8 h-8 rounded-xl bg-[var(--accent)] text-[var(--accent-foreground)] flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-            <BookMarked className="w-4 h-4" />
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col min-w-0">
-              <span className="font-bold text-sm tracking-tight text-[var(--text-primary)]">
-                NoteNest
-              </span>
-              <span className="text-[10px] text-[var(--text-muted)] font-mono">
-                Study Workspace
-              </span>
-            </div>
-          )}
-        </Link>
+      <div className="h-16 px-4 flex items-center justify-between border-b border-[var(--border)] shrink-0">
+        <NoteNestLogo size="md" showText={!isCollapsed} />
 
-        {/* Desktop Collapse Toggle */}
+        {/* Collapse toggle (desktop) */}
         <button
           type="button"
           onClick={toggleCollapsed}
-          className="hidden md:flex p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors"
+          className="hidden md:flex p-1.5 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors cursor-pointer"
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isCollapsed ? (
@@ -143,12 +202,12 @@ export function AppSidebar({
           )}
         </button>
 
-        {/* Mobile Close Button */}
+        {/* Mobile close */}
         {onCloseMobile && (
           <button
             type="button"
             onClick={onCloseMobile}
-            className="md:hidden p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors"
+            className="md:hidden p-1.5 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors cursor-pointer"
             title="Close navigation"
           >
             <X className="w-4 h-4" />
@@ -156,57 +215,90 @@ export function AppSidebar({
         )}
       </div>
 
-      {/* Workspace indicator */}
-      {!isCollapsed && (
-        <div className="px-3.5 py-2.5 border-b border-[var(--border)] shrink-0 bg-[var(--surface-muted)]/30">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-            Workspace
-          </div>
-          <div className="mt-0.5 text-xs font-medium text-[var(--text-primary)] truncate">
-            Personal Knowledge Base
-          </div>
-        </div>
-      )}
-
-      {/* Main Navigation */}
-      <div className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-1">
-        {/* Search entry button */}
+      {/* Prominent Action Button: + New */}
+      <div className="p-3 shrink-0 relative">
         <button
           type="button"
-          onClick={openSearch}
-          className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-left transition-colors group ${
-            isCollapsed ? "justify-center" : ""
-          } text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)]`}
-          title="Search (Ctrl+K)"
+          onClick={() => setIsNewMenuOpen(!isNewMenuOpen)}
+          className={`w-full h-10 rounded-full bg-[var(--accent)] text-[var(--accent-foreground)] font-semibold flex items-center justify-center gap-2 hover:opacity-95 active:scale-[0.99] transition-all shadow-sm cursor-pointer ${
+            isCollapsed ? "px-0" : "px-4"
+          }`}
+          title="Create New Document or Folder"
         >
-          <Search className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent)] shrink-0 transition-colors" />
-          {!isCollapsed && (
-            <div className="flex-1 flex items-center justify-between min-w-0">
-              <span className="truncate">Search</span>
-              <kbd className="text-[9px] font-mono px-1 py-0.5 rounded border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)]">
-                ⌘K
-              </kbd>
-            </div>
-          )}
+          <Plus className="w-4 h-4 stroke-[2.5]" />
+          {!isCollapsed && <span className="text-xs tracking-wide">New</span>}
         </button>
 
-        <div className="my-1 border-t border-[var(--border)] opacity-60" />
+        {/* Floating New Dropdown */}
+        {isNewMenuOpen && (
+          <div className="absolute left-3 right-3 top-14 z-50 p-1.5 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-[var(--shadow-modal)] flex flex-col gap-0.5 animate-in fade-in zoom-in-95 duration-100">
+            <button
+              type="button"
+              onClick={openCreateDocument}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors"
+            >
+              <FileText className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <span>Create Document</span>
+            </button>
+            <button
+              type="button"
+              onClick={openCreateFolder}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors"
+            >
+              <Folder className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <span>New Folder</span>
+            </button>
+            <button
+              type="button"
+              onClick={openUploadPdf}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors"
+            >
+              <Upload className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+              <span>Upload PDF</span>
+            </button>
+          </div>
+        )}
+      </div>
 
-        {/* Nav Items */}
+      {/* Main Navigation */}
+      <div className="flex-1 overflow-y-auto px-3 py-1 flex flex-col gap-1">
         {navItems.map((item) => {
           const Icon = item.icon;
+          const activeClasses = item.active
+            ? "bg-[var(--accent)] text-[var(--accent-foreground)] font-semibold shadow-xs"
+            : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)]";
+
+          if (item.onClick) {
+            return (
+              <button
+                key={item.label}
+                type="button"
+                onClick={item.onClick}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
+                  isCollapsed ? "justify-center" : ""
+                } ${activeClasses}`}
+                title={item.label}
+              >
+                <Icon
+                  className={`w-4 h-4 shrink-0 ${
+                    item.active
+                      ? "text-[var(--accent-foreground)]"
+                      : "text-[var(--text-muted)]"
+                  }`}
+                />
+                {!isCollapsed && <span className="truncate">{item.label}</span>}
+              </button>
+            );
+          }
+
           return (
             <Link
               key={item.label}
-              href={item.href}
+              href={item.href!}
               onClick={() => onCloseMobile?.()}
-              className={`flex items-center gap-3 px-2.5 py-2 rounded-xl text-left transition-colors font-medium ${
+              className={`flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
                 isCollapsed ? "justify-center" : ""
-              } ${
-                item.active
-                  ? "bg-[var(--accent)] text-[var(--accent-foreground)] shadow-xs"
-                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)]"
-              }`}
+              } ${activeClasses}`}
               title={item.label}
             >
               <Icon
@@ -221,91 +313,108 @@ export function AppSidebar({
           );
         })}
 
-        <div className="my-1 border-t border-[var(--border)] opacity-60" />
+        {/* COLLECTIONS Section */}
+        {!isCollapsed && (
+          <div className="mt-4 pt-3 border-t border-[var(--border)]">
+            <div className="px-3 pb-2 flex items-center justify-between">
+              <span className="text-[10px] font-bold tracking-wider uppercase text-[var(--text-muted)]">
+                Collections
+              </span>
+              <button
+                type="button"
+                onClick={openCreateFolder}
+                className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--surface-hover)] transition-colors cursor-pointer"
+                title="New Collection"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            </div>
 
-        {/* Settings & Profile */}
-        <Link
-          href="/settings"
-          onClick={() => onCloseMobile?.()}
-          className={`flex items-center gap-3 px-2.5 py-2 rounded-xl text-left transition-colors ${
-            isCollapsed ? "justify-center" : ""
-          } ${
-            pathname === "/settings"
-              ? "bg-[var(--accent)] text-[var(--accent-foreground)] shadow-xs"
-              : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)]"
-          }`}
-          title="Settings"
-        >
-          <Settings className="w-4 h-4 text-[var(--text-muted)] shrink-0" />
-          {!isCollapsed && <span className="truncate">Settings</span>}
-        </Link>
+            <div className="flex flex-col gap-0.5">
+              {collections.length > 0 ? (
+                collections.map((col) => {
+                  const isActive = pathname === `/library/folders/${col.id}`;
+                  return (
+                    <Link
+                      key={col.id}
+                      href={`/library/folders/${col.id}`}
+                      onClick={() => onCloseMobile?.()}
+                      className={`flex items-center justify-between px-3 py-1.5 rounded-xl transition-colors ${
+                        isActive
+                          ? "bg-[var(--surface-muted)] text-[var(--text-primary)] font-medium"
+                          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Folder className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
+                        <span className="truncate">{col.name}</span>
+                      </div>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-[var(--surface)] border border-[var(--border)] text-[var(--text-muted)] shrink-0">
+                        {col.documentCount ?? 0}
+                      </span>
+                    </Link>
+                  );
+                })
+              ) : (
+                <div className="px-3 py-2 text-[11px] text-[var(--text-muted)] italic">
+                  No collections yet
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Footer Area: User, Theme & Logout */}
-      <div className="p-2 border-t border-[var(--border)] shrink-0 flex flex-col gap-1.5 bg-[var(--surface)]/50">
-        {/* Profile Card / Link */}
-        <Link
-          href="/profile"
-          onClick={() => onCloseMobile?.()}
-          className={`flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-[var(--surface-hover)] transition-colors ${
-            isCollapsed ? "justify-center" : ""
-          } ${pathname === "/profile" ? "bg-[var(--surface-muted)]" : ""}`}
-          title="Profile Information"
-        >
-          <div className="w-7 h-7 rounded-lg bg-[var(--accent)] text-[var(--accent-foreground)] font-semibold text-[11px] flex items-center justify-center shrink-0">
-            {user?.name?.[0]?.toUpperCase() || "N"}
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col min-w-0">
-              <span className="font-medium text-xs text-[var(--text-primary)] truncate">
-                {user?.name || "Scholar"}
-              </span>
-              <span className="text-[10px] text-[var(--text-muted)] font-mono truncate">
-                {user?.email || "user@notenest.local"}
-              </span>
-            </div>
-          )}
-        </Link>
+      {/* User Profile Footer */}
+      <div className="p-3 border-t border-[var(--border)] shrink-0 bg-[var(--surface)]/40">
+        <DropdownMenu
+          align="left"
+          trigger={
+            <button
+              type="button"
+              className={`w-full flex items-center gap-3 p-1.5 rounded-2xl hover:bg-[var(--surface-hover)] transition-colors cursor-pointer ${
+                isCollapsed ? "justify-center" : ""
+              }`}
+              title={`${userName} (${user?.email || "Student"})`}
+            >
+              {/* User Avatar Circle */}
+              <div className="w-9 h-9 rounded-full bg-[var(--accent)]/15 border-2 border-[var(--accent)]/30 text-[var(--accent)] flex items-center justify-center font-bold text-xs shrink-0">
+                {userInitials}
+              </div>
 
-        {/* Bottom controls: Theme toggle & Logout */}
-        <div
-          className={`flex items-center justify-between pt-1 border-t border-[var(--border)] text-xs ${
-            isCollapsed ? "flex-col gap-1" : "px-1"
-          }`}
-        >
-          {/* Theme Quick Toggle */}
-          <button
-            type="button"
-            onClick={() => {
-              if (theme === "light") setTheme("dark");
-              else if (theme === "dark") setTheme("system");
-              else setTheme("light");
-            }}
-            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors flex items-center gap-1.5"
-            title={`Theme: ${theme}`}
-          >
-            {resolvedTheme === "dark" ? (
-              <Moon className="w-3.5 h-3.5 text-[var(--accent)]" />
-            ) : (
-              <Sun className="w-3.5 h-3.5 text-[var(--accent)]" />
-            )}
-            {!isCollapsed && (
-              <span className="text-[11px] capitalize">{theme}</span>
-            )}
-          </button>
-
-          {/* Logout button */}
-          <button
-            type="button"
-            disabled={isSigningOut}
-            onClick={handleSignOut}
-            className="p-1.5 rounded-lg text-[var(--status-error)] hover:bg-[var(--status-error)]/10 transition-colors flex items-center gap-1.5"
-            title="Sign out"
-          >
-            <LogOut className="w-3.5 h-3.5 shrink-0" />
-            {!isCollapsed && <span className="text-[11px]">Logout</span>}
-          </button>
-        </div>
+              {!isCollapsed && (
+                <div className="flex-1 flex items-center justify-between min-w-0 text-left">
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-semibold text-xs text-[var(--text-primary)] truncate">
+                      {userName}
+                    </span>
+                    <span className="text-[10px] text-[var(--text-muted)] truncate">
+                      Student
+                    </span>
+                  </div>
+                  <ChevronDown className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
+                </div>
+              )}
+            </button>
+          }
+          items={[
+            {
+              label: "Settings",
+              icon: <Settings className="w-3.5 h-3.5" />,
+              onClick: () => router.push("/settings"),
+            },
+            {
+              divider: true,
+              label: "",
+            },
+            {
+              label: "Sign out",
+              icon: <LogOut className="w-3.5 h-3.5" />,
+              danger: true,
+              onClick: handleSignOut,
+            },
+          ]}
+        />
       </div>
     </div>
   );
@@ -313,20 +422,16 @@ export function AppSidebar({
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex shrink-0 h-screen sticky top-0">
-        {sidebarContent}
-      </aside>
+      <aside className="hidden md:flex shrink-0 h-full">{sidebarContent}</aside>
 
-      {/* Mobile Drawer Backdrop */}
+      {/* Mobile Drawer Backdrop & Sidebar */}
       {isMobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden animate-in fade-in duration-150"
-          onClick={onCloseMobile}
-        >
+        <div className="fixed inset-0 z-50 md:hidden flex">
           <div
-            className="w-64 h-full bg-[var(--sidebar)] shadow-2xl animate-in slide-in-from-left duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+            onClick={onCloseMobile}
+          />
+          <div className="relative z-10 h-full flex animate-in slide-in-from-left duration-200">
             {sidebarContent}
           </div>
         </div>

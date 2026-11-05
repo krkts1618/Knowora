@@ -128,14 +128,16 @@ export function FolderCard({
   }
 
   // Grid view
+  const totalItems = docCount + subCount;
+
   return (
-    <div className="p-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)] hover:border-[var(--accent)] transition-all flex flex-col justify-between gap-3 group relative">
+    <div className="p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)] hover:border-[var(--accent)] hover:shadow-md transition-all flex flex-col justify-between gap-4 group relative">
       <div className="flex items-start justify-between gap-2">
         <Link
           href={`/library/folders/${folder.id}`}
-          className="w-10 h-10 rounded-xl bg-[var(--surface-muted)] text-[var(--accent)] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+          className="w-12 h-12 rounded-2xl bg-[var(--surface-muted)] text-[var(--accent)] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
         >
-          <Folder className="w-5 h-5 fill-[var(--accent)]/15" />
+          <Folder className="w-6 h-6 fill-[var(--accent)]/20 text-[var(--accent)]" />
         </Link>
 
         <DropdownMenu
@@ -143,7 +145,7 @@ export function FolderCard({
           trigger={
             <button
               type="button"
-              className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors"
+              className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors cursor-pointer"
               title="Folder options"
             >
               <MoreVertical className="w-3.5 h-3.5" />
@@ -153,21 +155,14 @@ export function FolderCard({
         />
       </div>
 
-      <Link href={`/library/folders/${folder.id}`} className="flex flex-col gap-1 min-w-0">
-        <h4 className="font-semibold text-xs text-[var(--text-primary)] truncate group-hover:text-[var(--accent)] transition-colors">
+      <Link href={`/library/folders/${folder.id}`} className="flex flex-col gap-0.5 min-w-0">
+        <h4 className="font-semibold text-sm text-[var(--text-primary)] truncate group-hover:text-[var(--accent)] transition-colors">
           {folder.name}
         </h4>
-        <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
-          <span>{subCount} sub</span>
-          <span>•</span>
-          <span>{docCount} docs</span>
-        </div>
+        <span className="text-xs text-[var(--text-muted)]">
+          {totalItems === 1 ? "1 Item" : `${totalItems} Items`}
+        </span>
       </Link>
-
-      <div className="pt-2 border-t border-[var(--border)]/70 flex items-center justify-between text-[10px] text-[var(--text-muted)] font-mono">
-        <span>Updated</span>
-        <span>{new Date(folder.updatedAt).toLocaleDateString()}</span>
-      </div>
     </div>
   );
 }

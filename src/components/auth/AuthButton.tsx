@@ -30,7 +30,7 @@ export function AuthButton({
   return (
     <button
       disabled={disabled || loading}
-      className={`w-full relative flex items-center justify-center py-2.5 px-4 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed select-none ${getVariantStyles()} ${className}`}
+      className={`w-full relative flex items-center justify-center py-2.5 px-5 text-sm font-semibold rounded-full transition-all duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed select-none active:scale-[0.99] ${getVariantStyles()} ${className}`}
       {...props}
     >
       {loading && (

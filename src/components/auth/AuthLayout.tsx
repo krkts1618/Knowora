@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useSyncExternalStore } from "react";
-import Link from "next/link";
-import { BookOpen, Sun, Moon } from "lucide-react";
+import { Sun, Moon, Shield } from "lucide-react";
+import { NoteNestLogo } from "@/components/ui/NoteNestLogo";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -44,45 +44,34 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col justify-between bg-[var(--canvas)] text-[var(--text-primary)] transition-colors duration-150 overflow-y-auto">
+    <div className="min-h-screen w-full flex flex-col justify-between bg-[var(--canvas)] text-[var(--text-primary)] transition-colors duration-150 overflow-y-auto relative select-none">
+      {/* Ambient background glow */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 rounded-full bg-[var(--accent)]/5 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 w-96 h-96 rounded-full bg-[#E5B450]/5 blur-3xl pointer-events-none" />
+
       {/* Header bar */}
-      <header className="w-full max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
-        <Link
-          href="/"
-          className="flex items-center gap-2.5 group focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] rounded-md"
-        >
-          <div className="w-9 h-9 rounded-lg bg-[var(--accent)] text-[var(--accent-foreground)] flex items-center justify-center shadow-sm">
-            <BookOpen className="w-5 h-5 transition-transform group-hover:scale-105" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-semibold text-base tracking-tight text-[var(--text-primary)]">
-              NoteNest
-            </span>
-            <span className="text-[10px] tracking-wider uppercase text-[var(--text-muted)] font-mono">
-              Knowledge Workspace
-            </span>
-          </div>
-        </Link>
+      <header className="w-full max-w-5xl mx-auto px-6 py-6 flex items-center justify-between z-10">
+        <NoteNestLogo size="md" />
 
         {/* Theme toggle */}
         <button
           type="button"
           onClick={toggleTheme}
           aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
-          className="p-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-muted)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--focus-ring)] cursor-pointer"
+          className="p-2 rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent)] transition-all cursor-pointer shadow-xs"
         >
-          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          {isDark ? <Sun className="w-4 h-4 text-[var(--accent)]" /> : <Moon className="w-4 h-4 text-[var(--accent)]" />}
         </button>
       </header>
 
       {/* Main card */}
-      <main className="w-full flex-1 flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-[420px] bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-7 md:p-9 shadow-[var(--shadow-card)] flex flex-col gap-6">
+      <main className="w-full flex-1 flex items-center justify-center px-4 py-8 z-10 select-text">
+        <div className="w-full max-w-[420px] bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-7 md:p-9 shadow-[var(--shadow-modal)] flex flex-col gap-6">
           <div className="flex flex-col gap-1.5 text-center">
-            <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-[var(--text-primary)]">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
               {title}
             </h1>
-            <p className="text-xs md:text-sm text-[var(--text-secondary)] leading-relaxed">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">
               {subtitle}
             </p>
           </div>
@@ -92,8 +81,9 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="w-full max-w-6xl mx-auto px-6 py-6 text-center text-xs text-[var(--text-muted)]">
-        <p>© 2026 NoteNest. Private & Secure Study Knowledge.</p>
+      <footer className="w-full max-w-5xl mx-auto px-6 py-6 text-center text-xs text-[var(--text-muted)] flex items-center justify-center gap-1.5 z-10">
+        <Shield className="w-3.5 h-3.5 text-[var(--accent)]" />
+        <span>NoteNest Private Study Knowledge Workspace</span>
       </footer>
     </div>
   );

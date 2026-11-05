@@ -29,7 +29,7 @@ export function PdfUploadComingSoonModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-[var(--shadow-modal)] p-6 overflow-hidden animate-in zoom-in-95 duration-150"
+        className="w-full max-w-md rounded-3xl bg-[var(--surface)] border border-[var(--border)] shadow-[var(--shadow-modal)] p-6 overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between pb-4 border-b border-[var(--border)] mb-4">
@@ -93,7 +93,7 @@ export function PdfUploadComingSoonModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium rounded-xl bg-[var(--accent)] text-[var(--accent-foreground)] hover:bg-[var(--accent-hover)] transition-colors"
+            className="px-5 py-2 text-xs font-semibold rounded-full bg-[var(--accent)] text-[var(--accent-foreground)] hover:opacity-95 transition-all shadow-xs cursor-pointer"
           >
             Got it
           </button>
